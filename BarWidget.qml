@@ -31,9 +31,7 @@ BarWidget {
 
   // What the bar shows is what shell.json stores, so a cycled format is the
   // format from then on rather than something that reverts on restart.
-  readonly property string activeFormat: (!vertical && showSeconds)
-    ? Model.withSeconds(configuredFormat, true)
-    : configuredFormat
+  readonly property string activeFormat: Model.withSeconds(configuredFormat, !vertical && showSeconds)
   readonly property string displayText: formatted(displayDate)
   readonly property var verticalLines: displayText.split("\n")
 
