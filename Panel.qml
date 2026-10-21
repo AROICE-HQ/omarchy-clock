@@ -1016,9 +1016,24 @@ Panel {
 
             Column {
               id: worldClocksColumn
+              readonly property bool hasRemovableClocks: root.zoneRows.some(function(row) { return !row.isHome })
+              readonly property bool hasDayOffsets: root.zoneRows.some(function(row) { return row.dayOffset !== 0 })
               width: gridColumn.width
               anchors.horizontalCenter: parent.horizontalCenter
               spacing: Style.space(6)
+
+              TextMetrics {
+                id: timeColumnMetrics
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.body
+                text: "00:00"
+              }
+
+              TextMetrics {
+                id: dayOffsetColumnMetrics
+                font: timeColumnMetrics.font
+                text: " (tmrw)"
+              }
 
               PanelSeparator {
                 foreground: root.contentForeground
@@ -1094,21 +1109,36 @@ Panel {
                     }
                   }
 
+                  // Share optional columns across rows only while needed.
                   Text {
                     id: timeLabel
                     textFormat: Text.PlainText
-                    anchors.right: zoneRow.modelData.isHome ? parent.right : removeButton.left
-                    anchors.rightMargin: zoneRow.modelData.isHome ? 0 : Style.space(8)
+                    anchors.right: dayOffsetLabel.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: zoneRow.modelData.time + (zoneRow.modelData.dayOffset !== 0 ? (zoneRow.modelData.dayOffset < 0 ? " (yst)" : " (tmrw)") : "")
+                    width: timeColumnMetrics.advanceWidth
+                    horizontalAlignment: Text.AlignRight
+                    text: zoneRow.modelData.time
                     color: Qt.darker(root.contentForeground, 1.3)
                     font.family: root.contentFontFamily
                     font.pixelSize: Style.font.body
                   }
 
+                  Text {
+                    id: dayOffsetLabel
+                    textFormat: Text.PlainText
+                    anchors.right: removeButton.left
+                    anchors.rightMargin: worldClocksColumn.hasRemovableClocks ? Style.space(8) : 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: worldClocksColumn.hasDayOffsets ? dayOffsetColumnMetrics.advanceWidth : 0
+                    text: zoneRow.modelData.dayOffset !== 0 ? (zoneRow.modelData.dayOffset < 0 ? " (yst)" : " (tmrw)") : ""
+                    color: timeLabel.color
+                    font: timeLabel.font
+                  }
+
                   PanelActionButton {
                     id: removeButton
                     visible: !zoneRow.modelData.isHome
+                    width: worldClocksColumn.hasRemovableClocks ? implicitWidth : 0
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     iconText: "󰅖"
