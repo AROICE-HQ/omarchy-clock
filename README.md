@@ -56,9 +56,9 @@ Everything the built-in `omarchy.clock` already has:
 
 New in this plugin:
 
-- **Show seconds** — a toggle below the world clocks. Appends `:ss` to the
-  bar label and switches the clock to second-precision ticking only while
-  it's on.
+- **Show seconds** — a toggle below the world clocks. Adds seconds to the
+  bar label while on, and hides them while off, even if the saved custom
+  format includes seconds. The clock ticks once per second only while on.
 - **World clocks** — add any number of cities by searching a real list of
   IANA timezones (the same one `timedatectl list-timezones` prints), with
   an optional custom label. Rows show that zone's live time and flag when
@@ -124,10 +124,12 @@ they all snap back to showing the real current time.
 
 ## How it works
 
-- **Seconds toggle**: `Model.withSeconds()` inserts `:ss` right after the
-  first `mm` token in whichever format is currently active. `SystemClock`
-  only switches to second precision while the toggle is on, matching the
-  built-in widget's minute precision otherwise.
+- **Seconds toggle**: `Model.withSeconds()` inserts `:ss` after the first
+  minutes token when enabled (unless seconds are already present), or
+  removes seconds and their preceding separator when disabled. Quoted
+  literals and the saved format are preserved. Vertical bars hide seconds.
+  `SystemClock` only switches to second precision while the toggle is on
+  in a horizontal bar, matching the built-in widget's minute precision otherwise.
 - **World clock times**: this shell's JS engine accepts
   `Intl.DateTimeFormat`'s `timeZone` option syntactically but does not
   actually resolve real zone names with it, so this plugin doesn't use

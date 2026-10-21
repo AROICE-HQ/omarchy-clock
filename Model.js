@@ -267,18 +267,26 @@ function stepMonth(year, month, delta) {
   return { year: target.getFullYear(), month: target.getMonth() }
 }
 
-// ---- Seconds toggle. Inserted after the first minutes token so both the
-//      24-hour and AM/PM presets gain seconds in the same place a person
-//      would read them ("HH:mm" -> "HH:mm:ss", "h:mm AP" -> "h:mm:ss AP").
-//      Vertical (stacked) formats are left untouched -- there is no room
-//      for a fourth line in a bar slot sized for three.
+// ---- Seconds toggle. Only unquoted tokens are changed; quoted text is
+//      literal in Qt formats. Disabling also strips seconds already saved
+//      in a custom format, along with their preceding separator.
 function withSeconds(format, enabled) {
   var text = String(format || "")
-  if (!enabled) return text
-  if (text.indexOf("ss") !== -1) return text
-  var idx = text.indexOf("mm")
-  if (idx === -1) return text
-  return text.slice(0, idx + 2) + ":ss" + text.slice(idx + 2)
+  if (!enabled)
+    return text.replace(/'(?:[^']|'')*'|[:. \t]?s+/g, function(token) {
+      return token.charAt(0) === "'" ? token : ""
+    })
+
+  var tokens = /'(?:[^']|'')*'|s+|m+/g
+  var token
+  var minutesEnd = -1
+  while ((token = tokens.exec(text)) !== null) {
+    if (token[0].charAt(0) === "'") continue
+    if (token[0].charAt(0) === "s") return text
+    if (minutesEnd === -1) minutesEnd = token.index + token[0].length
+  }
+  if (minutesEnd === -1) return text
+  return text.slice(0, minutesEnd) + ":ss" + text.slice(minutesEnd)
 }
 
 // ---- World clocks. Each entry is { tz, label }; tz is an IANA zone name
